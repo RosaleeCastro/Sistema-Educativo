@@ -1,0 +1,30 @@
+# ============================================================
+# .gitignore — sistema-educativo
+# Archivos que NUNCA deben subirse al repositorio
+# ============================================================
+
+# Variables de entorno con contraseñas reales
+.env
+
+# Archivos subidos por usuarios
+/almacenamiento/subidas/*
+!/almacenamiento/subidas/.gitkeep
+
+# Logs del sistema
+/almacenamiento/logs/*
+!/almacenamiento/logs/.gitkeep
+
+# Dependencias (si en el futuro se usa Composer)
+/vendor/
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Configuración de editores
+.vscode/
+.idea/
+*.sublime-project
+
+# Caché de PHP
+*.cache

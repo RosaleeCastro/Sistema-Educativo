@@ -1,0 +1,9 @@
+# ============================================================
+# .htaccess — RAÍZ del proyecto
+# Bloquea el acceso directo a todo excepto a publico/
+# Si alguien intenta acceder a /fuente/ o /configuracion/
+# desde el navegador, recibirá un error 403 (Prohibido)
+# ============================================================
+
+Options -Indexes
+Deny from all
