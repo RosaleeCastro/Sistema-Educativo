@@ -14,7 +14,7 @@ declare (strict_types=1);
 
 namespace App\Configuracion;
 
-class GestorSession{
+class GestorSesion{
 
   //Claves usadas en $_SESSION - constantes para evitar typos
 
