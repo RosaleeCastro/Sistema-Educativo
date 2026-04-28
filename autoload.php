@@ -1,8 +1,8 @@
 <?php
 // autoload.php
-// Autoloader PSR-4 que maneja dos rutas base:
-//   App\Configuracion\ → configuracion/
-//   App\             → fuente/
+// PSR-4 con dos rutas base:
+//   App\Configuracion\ → /configuracion/
+//   App\(resto)\       → /fuente/(subcarpeta)/
 
 spl_autoload_register(function (string $claseCompleta): void {
 
@@ -14,16 +14,19 @@ spl_autoload_register(function (string $claseCompleta): void {
 
     $claseRelativa = substr($claseCompleta, strlen($prefijo));
 
-    // Si empieza por Configuracion\ → carpeta configuracion/
+    // App\Configuracion\BaseDatos → configuracion/BaseDatos.php
     if (strncmp('Configuracion\\', $claseRelativa, 14) === 0) {
-        $claseSin = substr($claseRelativa, 14); // quita Configuracion\
-        $rutaArchivo = __DIR__ . '/configuracion/' . $claseSin . '.php';
+        $nombreClase = substr($claseRelativa, 14);
+        $rutaArchivo = __DIR__ . '/configuracion/' . $nombreClase . '.php';
+
+    // App\Modelos\Usuario → fuente/modelos/Usuario.php
+    // App\Controladores\X → fuente/controladores/X.php
+    // App\Servicios\X     → fuente/servicios/X.php
     } else {
-        // Todo lo demás → carpeta fuente/
-        $rutaArchivo = __DIR__ . '/fuente/'
-            . strtolower(str_replace('\\', '/', dirname($claseRelativa)))
-            . '/' . basename(str_replace('\\', '/', $claseRelativa))
-            . '.php';
+        $partes      = explode('\\', $claseRelativa);
+        $nombreClase = array_pop($partes);
+        $subcarpeta  = strtolower(implode('/', $partes));
+        $rutaArchivo = __DIR__ . '/fuente/' . $subcarpeta . '/' . $nombreClase . '.php';
     }
 
     if (file_exists($rutaArchivo)) {
