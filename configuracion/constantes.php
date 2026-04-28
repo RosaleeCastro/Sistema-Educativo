@@ -11,7 +11,7 @@ define('APP_VERSION',  '1.0.0');
 define('APP_NOMBRE',   'EduSystem');
 
 // ── Rutas del sistema (absolutas desde el servidor) ─────────
-define('RAIZ',          dirname(__DIR__));
+if (!defined('RAIZ')) define('RAIZ', dirname(__DIR__));
 define('DIR_FUENTE',    RAIZ . '/fuente');
 define('DIR_VISTAS',    DIR_FUENTE . '/vistas');
 define('DIR_CONFIG',    RAIZ . '/configuracion');
