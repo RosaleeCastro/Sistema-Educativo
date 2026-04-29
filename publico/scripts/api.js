@@ -53,4 +53,20 @@ const Api = (() => {
       return { estado: "error", mensaje: "Sin conexión al servidor." };
     }
   };
+
+  // POST  - uso : await Api.post('/api/asistencia', {unidad_id :5, estado : 'presente'});
+  //El token CSRF se añade automatiamente
+
+  const post = async (endpoint, datos = {}) => {
+    try {
+      const res = await fetch(BASE_URL + endpoint, {
+        method: "POST",
+        headers: { ...cabecerasBase(), "X-CSRF-Token": obtenerCSRF() },
+        body: JSON.stringify(datos),
+      });
+    } catch (error) {
+      console.error(`[Api.post] ${endpoint}:`, error);
+      return { estado: "error", mensaje: "Sin conexión con el servidor." };
+    }
+  };
 })();
