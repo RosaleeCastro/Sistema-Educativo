@@ -1,0 +1,86 @@
+/* ============================================================
+   publico/estilos/variables.css
+   Variables CSS globales y reset base
+   Importar primero antes que cualquier otro CSS
+   ============================================================ */
+
+/* ── Variables globales ────────────────────────────────────── */
+:root {
+  /* Colores principales */
+  --primario: #5b6af0;
+  --primario-dk: #4a58d4;
+  --primario-lt: #eef0fe;
+  --primario-rgb: 91, 106, 240;
+
+  /* Superficies */
+  --fondo: #f5f5f7;
+  --blanco: #ffffff;
+  --superficie-2: #f9f9fb;
+
+  /* Texto */
+  --texto: #1a1a2e;
+  --texto-suave: #6b7280;
+  --texto-muy-suave: #9ca3af;
+
+  /* Bordes */
+  --borde: #e5e7eb;
+  --borde-fuerte: #d1d5db;
+
+  /* Estados */
+  --exito: #16a34a;
+  --exito-bg: #f0fdf4;
+  --exito-borde: #86efac;
+
+  --error: #dc2626;
+  --error-bg: #fef2f2;
+  --error-borde: #fca5a5;
+
+  --aviso: #d97706;
+  --aviso-bg: #fffbeb;
+  --aviso-borde: #fcd34d;
+
+  --info: #1d4ed8;
+  --info-bg: #eff6ff;
+  --info-borde: #bfdbfe;
+
+  /* Layout */
+  --sidebar-w: 240px;
+  --navbar-h: 60px;
+
+  /* Forma */
+  --radio-sm: 6px;
+  --radio: 10px;
+  --radio-lg: 14px;
+  --radio-xl: 20px;
+
+  /* Sombras */
+  --sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --sombra: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --sombra-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+  /* Tipografía */
+  --fuente: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fuente-mono: "Fira Code", "Cascadia Code", monospace;
+
+  /* Transiciones */
+  --transicion: 0.15s ease;
+  --transicion-md: 0.25s ease;
+}
+
+/* ── Modo oscuro automático ────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #0f0f13;
+    --blanco: #1a1a24;
+    --superficie-2: #22222e;
+    --texto: #f1f1f5;
+    --texto-suave: #9ca3af;
+    --texto-muy-suave: #6b7280;
+    --borde: #2a2a38;
+    --borde-fuerte: #3a3a4a;
+    --primario-lt: #1e2048;
+    --sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --sombra: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --sombra-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+}

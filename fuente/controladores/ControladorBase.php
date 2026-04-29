@@ -62,17 +62,33 @@ abstract class ControladorBase
      * Útil para: páginas de login, instalador, errores.
      */
     protected function vistaSimple(string $ruta, array $datos = []): void
-    {
-        extract($datos, EXTR_SKIP);
-        $archivoVista = DIR_VISTAS . '/' . $ruta . '.php';
-
-        if (!file_exists($archivoVista)) {
-            http_response_code(500);
-            exit('Error: vista no encontrada.');
-        }
-
-        require $archivoVista;
+{
+    // Garantiza constantes disponibles en la vista
+    if (!defined('TOKEN_CSRF_NOMBRE')) {
+        require_once RAIZ . '/configuracion/constantes.php';
     }
+
+    // Garantiza sesión activa
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+
+    // Expone el token siempre como variable $token
+    $datos['token'] = $datos['token']
+        ?? $_SESSION['csrf_token']
+        ?? '';
+
+    extract($datos, EXTR_SKIP);
+
+    $archivoVista = DIR_VISTAS . '/' . $ruta . '.php';
+
+    if (!file_exists($archivoVista)) {
+        http_response_code(500);
+        exit('Error: vista no encontrada — ' . $ruta);
+    }
+
+    require $archivoVista;
+}
 
     // ── Respuestas JSON (para endpoints AJAX) ────────────────
 

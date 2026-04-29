@@ -1,28 +1,18 @@
-# ============================================================
-# .htaccess — carpeta publico/
-# Activa el módulo de reescritura de URLs de Apache y
-# redirige todas las peticiones a index.php (el enrutador)
-#
-# Ejemplo:
-#   /alumno/panel  →  index.php procesa la ruta /alumno/panel
-#   /api/asistencia → index.php procesa la ruta /api/asistencia
-#
-# Las peticiones a archivos reales (CSS, JS, imágenes)
-# se sirven directamente sin pasar por index.php
-# ============================================================
-
 Options -Indexes
 RewriteEngine On
 
-# Si el archivo solicitado existe físicamente (CSS, JS, imagen)
-# lo sirve directamente — no pasa por el enrutador
+# Archivos PHP específicos que se sirven directamente
+RewriteRule ^hash\.php$ - [L]
+RewriteRule ^diagnostico\.php$ - [L]
+RewriteRule ^instalar\.php$ - [L]
+
+# Si el archivo existe físicamente lo sirve directo
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
 # Todo lo demás va al enrutador
 RewriteRule ^ index.php [QSA,L]
 
-# Cabeceras de seguridad básicas
 <IfModule mod_headers.c>
     Header set X-Frame-Options "SAMEORIGIN"
     Header set X-Content-Type-Options "nosniff"

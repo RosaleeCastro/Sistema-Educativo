@@ -1,9 +1,18 @@
-# ============================================================
-# .htaccess — RAÍZ del proyecto
-# Bloquea el acceso directo a todo excepto a publico/
-# Si alguien intenta acceder a /fuente/ o /configuracion/
-# desde el navegador, recibirá un error 403 (Prohibido)
-# ============================================================
-
 Options -Indexes
-Deny from all
+RewriteEngine On
+
+# Si el archivo solicitado existe fÃsicamente (CSS, JS, imagen)
+# lo sirve directamente â€” no pasa por el enrutador
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Todo lo demÃ¡s va al enrutador
+RewriteRule ^ index.php [QSA,L]
+
+# Cabeceras de seguridad bÃ¡sicas
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

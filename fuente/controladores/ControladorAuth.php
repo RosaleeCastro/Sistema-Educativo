@@ -36,22 +36,26 @@ class ControladorAuth extends ControladorBase
 
   //----Mostrar formulario de login----------
 
-  public function mostrarLogin(array $params =[]) : void 
-  {
-    //  Si ya está logueado no tiene sentido mostrar el login
-    if(GestorSesion::estaAutenticado()){
-      $this->redirigirSegunRol();
-      return;
+  public function mostrarLogin(array $params = []): void
+{
+    if (GestorSesion::estaAutenticado()) {
+        $this->redirigirSegunRol();
+        return;
+    }
+
+    // Aseguramos que la sesión está activa antes de generar el token
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
     }
 
     $token = $this->generarTokenCSRF();
-    $this->vistaSimple('auth/login', [
-      'token'  => $token,
-      'error'  =>GestorSesion::obtenerFlash('error'),
-      'info'  =>GestorSesion::obtenerFlash('info'),
-    ]);
 
-  }
+    $this->vistaSimple('auth/login', [
+        'token' => $token,
+        'error' => GestorSesion::obtenerFlash('error'),
+        'info'  => GestorSesion::obtenerFlash('info'),
+    ]);
+}
 
   //-----Procesar login-------
 
