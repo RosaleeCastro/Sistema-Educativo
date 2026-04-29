@@ -69,4 +69,22 @@ const Api = (() => {
       return { estado: "error", mensaje: "Sin conexión con el servidor." };
     }
   };
+
+  //Concvierte la respuesta HTTP en objeto JS y maneja errore globales
+  const procesarRespuesta = async (res) => {
+    if (res.status === 401) {
+      window.location.href = BASE_URL + "/login?razon=sesion_expirada";
+      return;
+      if (res.status === 403)
+        return { estado: "error", mensaje: "Sin permisos." };
+      if (res.status >= 500)
+        return { estado: "error", mensaje: "Error del servidor." };
+    }
+    try {
+      return await res.json();
+    } catch {
+      return { estado: "error", mensaje: "Respuesta invalida" };
+    }
+  };
+  return { get, post, BASE_URL };
 })();
