@@ -66,11 +66,13 @@ async function cargarPanelAdmin() {
 }
 
 function tarjetaAlumno(c) {
-    const pct   = parseInt(c.porcentaje_asistencia ?? 0);
-    const color = pct>=75?'var(--exito)':pct>=50?'var(--aviso)':'var(--error)';
-    const badge = pct>=75?'badge-exito':pct>=50?'badge-aviso':'badge-error';
-    const texto = pct>=75?'Al día':pct>=50?'Regular':'Atención';
-    return `<a href="${Api.BASE_URL}/alumno/curso/${c.id}" class="tarjeta"
+  const pct = parseInt(c.porcentaje_asistencia ?? 0);
+  const color =
+    pct >= 75 ? "var(--exito)" : pct >= 50 ? "var(--aviso)" : "var(--error)";
+  const badge =
+    pct >= 75 ? "badge-exito" : pct >= 50 ? "badge-aviso" : "badge-error";
+  const texto = pct >= 75 ? "Al día" : pct >= 50 ? "Regular" : "Atención";
+  return `<a href="${Api.BASE_URL}/alumno/curso/${c.id}" class="tarjeta"
         style="text-decoration:none;display:block;transition:box-shadow .15s"
         onmouseover="this.style.boxShadow='var(--sombra)'"
         onmouseout="this.style.boxShadow='var(--sombra-sm)'">
@@ -80,8 +82,8 @@ function tarjetaAlumno(c) {
         <div style="font-weight:600;font-size:.9375rem;color:var(--texto);margin-bottom:.375rem">
             ${esc(c.nombre)}</div>
         <div style="font-size:.8rem;color:var(--texto-suave);margin-bottom:.75rem">
-            👨‍🏫 ${esc(c.nombre_profesor??'')}
-            ${c.nombre_programa?`· 🎓 ${esc(c.nombre_programa)}`:''}
+            👨‍🏫 ${esc(c.nombre_profesor ?? "")}
+            ${c.nombre_programa ? `· 🎓 ${esc(c.nombre_programa)}` : ""}
         </div>
         <div style="display:flex;justify-content:space-between;font-size:.75rem;
             color:var(--texto-suave);margin-bottom:.25rem">
@@ -90,8 +92,64 @@ function tarjetaAlumno(c) {
             <div style="width:${pct}%;height:6px;background:${color};border-radius:4px;transition:width .6s ease"></div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;font-size:.75rem">
-            <span style="color:var(--texto-suave)">📋 ${c.total_unidades??0} unidades</span>
+            <span style="color:var(--texto-suave)">📋 ${c.total_unidades ?? 0} unidades</span>
             <span class="badge ${badge}">${texto}</span>
         </div></a>`;
 }
- 
+function tarjetaProfesor(c) {
+  return `<div class="tarjeta">
+        <div style="font-weight:600;font-size:.9375rem;color:var(--texto);margin-bottom:.375rem">
+            ${esc(c.nombre)}</div>
+        <div style="font-size:.8rem;color:var(--texto-suave);margin-bottom:1rem">
+            ${c.nombre_programa ? `🎓 ${esc(c.nombre_programa)}` : '<span class="badge badge-gris">Curso independiente</span>'}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem">
+            <div style="background:var(--primario-lt);border-radius:var(--radio);padding:.625rem;text-align:center">
+                <div style="font-size:1.25rem;font-weight:700;color:var(--primario)">${c.total_alumnos ?? 0}</div>
+                <div style="font-size:.7rem;color:var(--texto-suave)">Alumnos</div>
+            </div>
+            <div style="background:var(--exito-bg);border-radius:var(--radio);padding:.625rem;text-align:center">
+                <div style="font-size:1.25rem;font-weight:700;color:var(--exito)">${c.total_unidades ?? 0}</div>
+                <div style="font-size:.7rem;color:var(--texto-suave)">Unidades</div>
+            </div>
+        </div>
+        <div style="display:flex;gap:.5rem">
+            <a href="${Api.BASE_URL}/profesor/curso/${c.id}/unidad/nueva"
+               class="btn btn-primario btn-sm" style="flex:1;justify-content:center">+ Unidad</a>
+            <a href="${Api.BASE_URL}/profesor/unidad/${c.id}/asistencia"
+               class="btn btn-secundario btn-sm" style="flex:1;justify-content:center">📋 Asistencia</a>
+        </div></div>`;
+}
+
+function skeletons(n) {
+  return Array(n)
+    .fill(
+      `<div class="tarjeta" style="animation:pulso 1.5s infinite">
+        <div style="height:90px;background:var(--borde);border-radius:var(--radio);margin-bottom:1rem"></div>
+        <div style="height:16px;background:var(--borde);border-radius:4px;margin-bottom:.5rem;width:70%"></div>
+        <div style="height:12px;background:var(--borde);border-radius:4px;width:50%"></div>
+        <style>@keyframes pulso{0%,100%{opacity:1}50%{opacity:.5}}</style></div>`,
+    )
+    .join("");
+}
+function errorHtml(msg) {
+  return `<div class="flash flash-error" style="grid-column:1/-1">⚠️ ${esc(msg)}</div>`;
+}
+function animarContador(id, fin) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  let n = 0,
+    paso = Math.ceil(fin / 30);
+  const t = setInterval(() => {
+    n = Math.min(n + paso, fin);
+    el.textContent = n;
+    if (n >= fin) clearInterval(t);
+  }, 30);
+}
+function esc(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
