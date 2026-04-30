@@ -39,17 +39,28 @@ async function cargarPanelAlumno() {
 }
 
 async function cargarPanelProfesor() {
-    const c = document.getElementById('cursos-profesor');
-    if (!c) return;
-    c.innerHTML = skeletons(3);
-    const datos = await Api.get('/api/cursos/profesor');
-    if (datos.estado === 'error') { c.innerHTML = errorHtml(datos.mensaje); return; }
-    const cursos = datos.cursos ?? [];
-    if (!cursos.length) {
-        c.innerHTML = `<div class="tarjeta texto-centro" style="padding:3rem;grid-column:1/-1">
+  const c = document.getElementById("cursos-profesor");
+  if (!c) return;
+  c.innerHTML = skeletons(3);
+  const datos = await Api.get("/api/cursos/profesor");
+  if (datos.estado === "error") {
+    c.innerHTML = errorHtml(datos.mensaje);
+    return;
+  }
+  const cursos = datos.cursos ?? [];
+  if (!cursos.length) {
+    c.innerHTML = `<div class="tarjeta texto-centro" style="padding:3rem;grid-column:1/-1">
             <div style="font-size:3rem;margin-bottom:1rem">📚</div>
             <h3>No tienes cursos asignados aún</h3></div>`;
-        return;
-    }
-    c.innerHTML = cursos.map(tarjetaProfesor).join('');
+    return;
+  }
+  c.innerHTML = cursos.map(tarjetaProfesor).join("");
+}
+async function cargarPanelAdmin() {
+  const datos = await Api.get("/api/stats/admin");
+  if (datos.estado === "error") return;
+  animarContador("stat-alumnos", datos.alumnos ?? 0);
+  animarContador("stat-profesores", datos.profesores ?? 0);
+  animarContador("stat-cursos", datos.cursos ?? 0);
+  animarContador("stat-unidades", datos.unidades ?? 0);
 }
