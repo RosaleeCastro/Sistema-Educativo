@@ -29,8 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // En pantallas pequeñas el sidebar está oculto.
   // El botón hamburguesa lo muestra/oculta al hacer clic.
   const btnMenu = document.getElementById("btn-menu-movil");
-  const sidebar = document.getElementById("sidebar");
-  const backdrop = document.getElementById("sidebar-backdrop");
+  const sidebar = document.getElementById("sidebar");  const backdrop = document.getElementById("sidebar-backdrop");
 
   if (btnMenu && sidebar) {
     btnMenu.addEventListener("click", () => {
