@@ -89,6 +89,9 @@ class ControladorCurso extends ControladorBase
         $curso    = $this->modeloCurso->buscarPorId($cursoId);
         $unidades = $this->modeloUnidad->listarConAsistencia($cursoId, $alumnoId);
 
+        // Generar token CSRF para que asistencia.js pueda hacer POST
+            $this->generarTokenCSRF();
+
         ServicioLog::registrar('ver_curso', 'curso', $cursoId);
 
         $this->vista('alumno/curso', [
