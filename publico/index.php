@@ -189,6 +189,15 @@ $enrutador->get('/api/notificaciones',
 $enrutador->post('/api/notificaciones/:id/leer',
     [ControladorNotificacion::class, 'marcarLeida']);
 
+// ── API cursos ───────────────────────────────────────────────
+$enrutador->get('/api/cursos/alumno',
+    [ControladorCurso::class, 'apiCursosAlumno']);
+
+$enrutador->get('/api/cursos/profesor',
+    [ControladorCurso::class, 'apiCursosProfesor']);
+
+$enrutador->get('/api/stats/admin',
+    [ControladorCurso::class, 'apiStatsAdmin'], ROL_ADMIN);
+
 // ── 7. Despachar ─────────────────────────────────────────────
-// Lee la URL actual y ejecuta el controlador correspondiente
 $enrutador->despachar();
