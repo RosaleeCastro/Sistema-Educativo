@@ -141,7 +141,11 @@ class Enrutador
      */
     private function verificarRol(string $rolRequerido): void
     {
+        // Garantizar que la sesión está activa antes de leer el rol
+            \App\Configuracion\GestorSesion::iniciar();
+    
         $rolUsuario = GestorSesion::obtenerRol();
+
 
         // El admin siempre puede acceder a todo
         if ($rolUsuario === ROL_ADMIN) return;

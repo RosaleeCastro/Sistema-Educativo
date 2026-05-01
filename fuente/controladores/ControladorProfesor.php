@@ -23,6 +23,12 @@ class ControladorProfesor extends ControladorBase
     public function panel(array $params = []): void
     {
         $profesorId = GestorSesion::obtenerIdUsuario();
+
+        if(!$profesorId){
+            $this->redirigir('/login');
+            return;
+        }
+        
         $cursos     = $this->modeloCurso->listarPorProfesor($profesorId);
 
         ServicioLog::registrar('ver_panel', 'profesor', $profesorId);

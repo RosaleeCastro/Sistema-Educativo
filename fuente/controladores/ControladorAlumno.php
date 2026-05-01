@@ -23,6 +23,12 @@ class ControladorAlumno extends ControladorBase
     public function panel(array $params = []): void
     {
         $alumnoId = GestorSesion::obtenerIdUsuario();
+
+        if(!$alumnoId){
+            $this->redirigir('/login');
+            return;
+        }
+        
         $cursos   = $this->modeloCurso->listarPorAlumno($alumnoId);
 
         ServicioLog::registrar('ver_panel', 'alumno', $alumnoId);

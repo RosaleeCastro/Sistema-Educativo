@@ -1,88 +1,88 @@
 <?php
-
-//Centarliza toda la lógica de sesion de PHP
-//Responsabilidades
-//  - Inciiar la sesión de forma segura
-//  - Guardar y leer los datos del usuario logueado
-//  - Verificar si la sesion ha expirado
-//  - Regenerar el ID al hacer login (previene fijación de sesión)
-//  - Destruir la sessión la hacer logout
-
+// configuracion/GestorSesion.php
+// ============================================================
+// Centraliza toda la lógica de sesiones de PHP.
 //
+// RESPONSABILIDADES:
+//   - Iniciar la sesión de forma segura (una sola vez)
+//   - Guardar y leer los datos del usuario logueado
+//   - Verificar si la sesión ha expirado
+//   - Regenerar el ID al hacer login (previene fijación de sesión)
+//   - Destruir la sesión al hacer logout
+//   - Mensajes flash (aparecen una vez y desaparecen)
+//
+// USO:
+//   - index.php llama GestorSesion::iniciar() UNA sola vez al arrancar
+//   - Los controladores usan GestorSesion::obtenerIdUsuario(), etc.
+//   - Nunca usar $_SESSION directamente fuera de esta clase
+// ============================================================
 
-declare (strict_types=1);
+declare(strict_types=1);
 
 namespace App\Configuracion;
 
-class GestorSesion{
+class GestorSesion
+{
+    // Claves internas de $_SESSION — usar constantes evita typos
+    private const CLAVE_ID     = 'usuario_id';
+    private const CLAVE_ROL    = 'usuario_rol';
+    private const CLAVE_NOMBRE = 'usuario_nombre';
+    private const CLAVE_CORREO = 'usuario_correo';
+    private const CLAVE_ULTIMA = 'ultima_actividad';
+    private const CLAVE_IP     = 'ip_origen';
 
-  //Claves usadas en $_SESSION - constantes para evitar typos
+    // ── Arranque ─────────────────────────────────────────────
 
-    private const CLAVE_ID       = 'usuario_id';
-    private const CLAVE_ROL      = 'usuario_rol';
-    private const CLAVE_NOMBRE   = 'usuario_nombre';
-    private const CLAVE_CORREO   = 'usuario_correo';
-    private const CLAVE_ULTIMA   = 'ultima_actividad';
-    private const CLAVE_IP       = 'ip_origen';
+    /**
+     * Inicia la sesión de forma segura.
+     * Llamar UNA SOLA VEZ desde index.php al arrancar.
+     * Si la sesión ya está activa no hace nada.
+     */
+    public static function iniciar(): void
+    {
+        // Si ya hay sesión activa no hacer nada
+        if (session_status() === PHP_SESSION_ACTIVE) return;
 
-  /**
-   * Incia la sesión con configuración segura.
-   * Llamar una vez al arrancar, desde index.php
-   */
+        // Si ya se enviaron cabeceras HTTP no podemos iniciar sesión
+        if (headers_sent()) return;
 
-  public static function iniciar():void
-  {
-    if(session_status() === PHP_SESSION_ACTIVE) return;
+        session_start();
 
-    // Nombre personalizado de la cookie de sesión
-    // Evita exponer que usamos PHP (el nombre 'PHPSESSID' es un dato que
-    // los atacantes usan para identificar el lenguaje del servidor)
-    session_name('edu_session');
-
-    session_start();
-
-    //Si hay sesión activa, verificamos que no haya expirado
-
-    if(self::estaAutenticado()){
-      self::verificarExpiracion();
-      self::verificarIP();
+        // Si el usuario ya tenía sesión verificamos que siga siendo válida
+        if (self::estaAutenticado()) {
+            self::verificarExpiracion();
+            self::verificarIP();
+        }
     }
 
-  }
-  /**
-     * Registra al usuario en la sesión tras un login exitoso.
-     * Regenera el ID de sesión para prevenir fijación de sesión.
-     *
-     * La fijación de sesión ocurre cuando un atacante fuerza a su
-     * víctima a usar un session_id conocido. Al regenerarlo en el
-     * login, el ID previo queda invalidado.
+    // ── Login y logout ───────────────────────────────────────
+
+    /**
+     * Guarda los datos del usuario en sesión tras un login exitoso.
+     * Regenera el ID de sesión para prevenir ataques de fijación de sesión.
      */
+    public static function iniciarSesionUsuario(array $usuario): void
+    {
+        // Regenerar ID ANTES de guardar datos — invalida el ID anterior
+        session_regenerate_id(true);
 
-  public static function iniciarSesionUsuario(array $usuario):void{
-
-  //Regeneramos el ID antes de guardar datos de usuario
-
-    session_regenerate_id(true); 
         $_SESSION[self::CLAVE_ID]     = $usuario['id'];
         $_SESSION[self::CLAVE_ROL]    = $usuario['rol'];
         $_SESSION[self::CLAVE_NOMBRE] = $usuario['nombre'] . ' ' . $usuario['apellidos'];
         $_SESSION[self::CLAVE_CORREO] = $usuario['correo'];
         $_SESSION[self::CLAVE_ULTIMA] = time();
         $_SESSION[self::CLAVE_IP]     = $_SERVER['REMOTE_ADDR'] ?? '';
-  }
+    }
 
-  /**
-   * Cierra la sesión completamente
-   * Elimina la cookie y destruye todos los datos 
-  */
+    /**
+     * Cierra la sesión completamente.
+     * Vacía los datos, elimina la cookie y destruye la sesión.
+     */
+    public static function cerrar(): void
+    {
+        $_SESSION = [];
 
-  public static function cerrar():void{
-
-    //vaciomos el array de seion
-    $_SESSION = [];
-
-    //eliminamos la cookie del navegador del usuario
-    if (ini_get('session.use_cookies')) {
+        if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
             setcookie(
                 session_name(), '',
@@ -92,117 +92,110 @@ class GestorSesion{
                 $params['secure'],
                 $params['httponly']
             );
-  }
-  session_destroy();
-  }
+        }
 
-  //---------Métodos de lectura----------
+        session_destroy();
+    }
 
-  public static function estaAutenticado():bool{
-    return isset($_SESSION[self::CLAVE_ID]);
-  }
-  
-  public static function obtenerIdUsuario(): ?int
-  {
-      return isset($session[self::CLAVE_ID])
-      ? (int) $_SESSION[self::CLAVE_ID]
-      : null;
-  }
+    // ── Lectura de datos del usuario ─────────────────────────
 
-  public static function obtenerRol (): ?string{
-      return $_SESSION[self::CLAVE_ROL] ?? null;
-  }
+    public static function estaAutenticado(): bool
+    {
+        return isset($_SESSION[self::CLAVE_ID]);
+    }
 
-  public static function obtenerNombre(): string {
-    return $_SESSION[self::CLAVE_NOMBRE] ?? 'Invitado';
-  }
-   public static function obtenerCorreo(): ?string
+    public static function obtenerIdUsuario(): ?int
+    {
+        return isset($_SESSION[self::CLAVE_ID])
+            ? (int) $_SESSION[self::CLAVE_ID]
+            : null;
+    }
+
+    public static function obtenerRol(): ?string
+    {
+        return $_SESSION[self::CLAVE_ROL] ?? null;
+    }
+
+    public static function obtenerNombre(): string
+    {
+        return $_SESSION[self::CLAVE_NOMBRE] ?? 'Invitado';
+    }
+
+    public static function obtenerCorreo(): ?string
     {
         return $_SESSION[self::CLAVE_CORREO] ?? null;
     }
- 
+
     public static function esAlumno(): bool
     {
         return self::obtenerRol() === ROL_ALUMNO;
     }
- 
+
     public static function esProfesor(): bool
     {
         return self::obtenerRol() === ROL_PROFESOR;
     }
- 
+
     public static function esAdmin(): bool
     {
         return self::obtenerRol() === ROL_ADMIN;
     }
 
     /**
-     * Devuelve el token de sesión hasheado.
-     * Se usa como identificador en la tabla consultas_ia
-     * sin exponer el ID real de sesión.
+     * Token hasheado de la sesión.
+     * Usado en consultas_ia sin exponer el session_id real.
      */
-
     public static function obtenerTokenSesion(): string
     {
         return hash('sha256', session_id());
     }
 
-     // ── Mensajes flash ───────────────────────────────────────
-    // Los mensajes flash se muestran UNA sola vez y desaparecen.
-    // Útil para: "Curso creado correctamente", "Contraseña incorrecta", etc.
- 
+    // ── Mensajes flash ───────────────────────────────────────
+
     public static function flash(string $tipo, string $mensaje): void
     {
         $_SESSION['flash'][$tipo] = $mensaje;
     }
+
     public static function obtenerFlash(string $tipo): ?string
     {
         if (!isset($_SESSION['flash'][$tipo])) return null;
         $mensaje = $_SESSION['flash'][$tipo];
-        unset($_SESSION['flash'][$tipo]);   // Se elimina tras leerlo
+        unset($_SESSION['flash'][$tipo]);
         return $mensaje;
     }
+
     public static function hayFlash(string $tipo): bool
     {
         return isset($_SESSION['flash'][$tipo]);
     }
 
-    // ── Seguridad ────────────────────────────────────────────
- 
-    /**
-     * Cierra la sesión si lleva más tiempo del permitido sin actividad.
-     * Por defecto: SESION_DURACION_HORAS horas (definido en constantes.php)
-     */
+    // ── Seguridad interna ────────────────────────────────────
+
     private static function verificarExpiracion(): void
     {
-        $duracionSegundos = SESION_DURACION_HORAS * 3600;
-        $ultimaActividad  = $_SESSION[self::CLAVE_ULTIMA] ?? 0;
- 
-        if ((time() - $ultimaActividad) > $duracionSegundos) {
+        $limite          = SESION_DURACION_HORAS * 3600;
+        $ultimaActividad = $_SESSION[self::CLAVE_ULTIMA] ?? 0;
+
+        if ((time() - $ultimaActividad) > $limite) {
             self::cerrar();
             header('Location: ' . ($_ENV['APP_URL'] ?? '') . '/login?razon=expiracion');
             exit;
         }
- 
-        // Actualizamos el timestamp de última actividad
+
         $_SESSION[self::CLAVE_ULTIMA] = time();
     }
 
-     /**
-     * Cierra la sesión si la IP cambia durante la misma sesión.
-     * Previene el robo de sesión desde otra red.
-     */
     private static function verificarIP(): void
     {
-        $ipActual   = $_SERVER['REMOTE_ADDR'] ?? '';
-        $ipSesion   = $_SESSION[self::CLAVE_IP] ?? '';
- 
+        $ipActual = $_SERVER['REMOTE_ADDR'] ?? '';
+        $ipSesion = $_SESSION[self::CLAVE_IP] ?? '';
+
         if ($ipSesion && $ipActual !== $ipSesion) {
-            error_log("[Seguridad] Cambio de IP en sesión. Original: {$ipSesion} | Actual: {$ipActual}");
+            error_log("[Seguridad] Cambio de IP. Original: {$ipSesion} | Actual: {$ipActual}");
             self::cerrar();
             header('Location: ' . ($_ENV['APP_URL'] ?? '') . '/login?razon=seguridad');
             exit;
         }
     }
-
 }

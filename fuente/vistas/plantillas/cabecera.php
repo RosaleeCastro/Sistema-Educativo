@@ -1,37 +1,33 @@
+<?php
+// fuente/vistas/plantillas/cabecera.php
+// Se carga automaticamente en cada vista autenticada via ControladorBase::vista()
+// Contiene: HTML head, CSS, navbar, sidebar segun rol y apertura del main
+$urlBase = rtrim($_ENV['APP_URL'] ?? 'http://localhost/sistema-educativo/publico', '/');
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($tituloPagina ?? 'EduSystem') ?></title>
-
-    <!-- CSS externos — variables primero, luego base y layout -->
-    <link rel="stylesheet" href="/sistema-educativo/publico/estilos/variables.css">
-    <link rel="stylesheet" href="/sistema-educativo/publico/estilos/base.css">
-    <link rel="stylesheet" href="/sistema-educativo/publico/estilos/layout.css">
+    <link rel="stylesheet" href="<?= $urlBase ?>/estilos/variables.css">
+    <link rel="stylesheet" href="<?= $urlBase ?>/estilos/base.css">
+    <link rel="stylesheet" href="<?= $urlBase ?>/estilos/layout.css">
     <?php if (isset($cssExtra)) echo $cssExtra; ?>
-
-    <!-- Token CSRF en meta tag — api.js lo lee para proteger peticiones POST -->
     <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+    <meta name="app-url"    content="<?= $urlBase ?>">
 </head>
-
-<!-- data-rol permite que panel.js sepa qué datos cargar según el rol -->
 <body data-rol="<?= htmlspecialchars($usuarioRol ?? '') ?>">
 
-<!-- ── Navbar ─────────────────────────────────────────────── -->
 <nav class="navbar">
     <a href="/" class="navbar-logo">
         <span class="icono">🎓</span> EduSystem
     </a>
     <div class="navbar-espaciador"></div>
-
-    <!-- Notificaciones — notificaciones.js actualiza el badge -->
     <button class="notif-btn" id="btn-notif" title="Notificaciones">
         🔔
         <span class="notif-badge" id="badge-notif">0</span>
     </button>
-
-    <!-- Info del usuario logueado -->
     <div class="usuario-info">
         <div class="avatar">
             <?= strtoupper(substr($usuarioNombre ?? 'U', 0, 1)) ?>
@@ -41,11 +37,9 @@
             <div class="usuario-rol"><?= htmlspecialchars(ucfirst($usuarioRol ?? '')) ?></div>
         </div>
     </div>
-
-    <a href="/salir" class="btn-salir">↩ Salir</a>
+    <a href="/salir" class="btn-salir">Salir</a>
 </nav>
 
-<!-- ── Sidebar según rol ──────────────────────────────────── -->
 <aside class="sidebar" id="sidebar">
     <?php
     $urlActual = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
@@ -65,7 +59,7 @@
 
     <?php elseif ($usuarioRol === ROL_PROFESOR): ?>
     <div class="sidebar-seccion">
-        <div class="sidebar-seccion-titulo">Gestión</div>
+        <div class="sidebar-seccion-titulo">Gestion</div>
         <a href="/profesor/panel"  class="sidebar-link <?= $activo('/profesor/panel') ?>">
             <span class="icono">🏠</span> Mi panel</a>
         <a href="/profesor/cursos" class="sidebar-link <?= $activo('/profesor/cursos') ?>">
@@ -74,7 +68,7 @@
 
     <?php elseif ($usuarioRol === ROL_ADMIN): ?>
     <div class="sidebar-seccion">
-        <div class="sidebar-seccion-titulo">Administración</div>
+        <div class="sidebar-seccion-titulo">Administracion</div>
         <a href="/admin/panel"     class="sidebar-link <?= $activo('/admin/panel') ?>">
             <span class="icono">🏠</span> Panel</a>
         <a href="/admin/usuarios"  class="sidebar-link <?= $activo('/admin/usuarios') ?>">
@@ -87,18 +81,14 @@
     <?php endif; ?>
 </aside>
 
-<!-- ── Contenido principal ───────────────────────────────── -->
 <main class="contenido">
 
-    <!-- Mensajes flash — app.js los hace desaparecer a los 4 segundos -->
-    <?php if (!empty($flashExito)): ?>
-    <div class="flash flash-exito">✅ <?= htmlspecialchars($flashExito) ?></div>
-    <?php endif; ?>
-    <?php if (!empty($flashError)): ?>
-    <div class="flash flash-error">⚠️ <?= htmlspecialchars($flashError) ?></div>
-    <?php endif; ?>
-    <?php if (!empty($flashInfo)): ?>
-    <div class="flash flash-info">ℹ️ <?= htmlspecialchars($flashInfo) ?></div>
-    <?php endif; ?>
-
-<!-- El contenido de cada vista se inserta aquí -->
+<?php if (!empty($flashExito)): ?>
+<div class="flash flash-exito">✅ <?= htmlspecialchars($flashExito) ?></div>
+<?php endif; ?>
+<?php if (!empty($flashError)): ?>
+<div class="flash flash-error">⚠️ <?= htmlspecialchars($flashError) ?></div>
+<?php endif; ?>
+<?php if (!empty($flashInfo)): ?>
+<div class="flash flash-info">ℹ️ <?= htmlspecialchars($flashInfo) ?></div>
+<?php endif; ?>

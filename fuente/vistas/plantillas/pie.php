@@ -5,7 +5,7 @@
 <script src="/sistema-educativo/publico/scripts/api.js"></script>
 <script src="/sistema-educativo/publico/scripts/app.js"></script>
 <script src="/sistema-educativo/publico/scripts/panel.js"></script>
-<script src="/sistema-educativo/publico/scripts/asistencia.js"></script>
+<!--<script src="/sistema-educativo/publico/scripts/asistencia.js"></script> -->
 <?php if (isset($scriptsExtra)) echo $scriptsExtra; ?>
 
 </body>

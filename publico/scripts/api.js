@@ -17,74 +17,63 @@
 //======================
 
 const Api = (() => {
-  //BASE_URL se calcula desde la URL actual para que funcione
-  //tanto en Xamm´p local como el servidor de produccción.
-
-  const BASE_URL = () => {
-    const url = window.location.href;
-    const match = url.match(/(.*\/publico)/);
-    return match ? match[1] : "";
-  };
-  // PHP pone el token CSRF en una meta tag de la cabecera
-  //JS lo lee desde aquí para enviarlo en cada POST
+  // Calcula la URL base desde el meta tag que PHP inyecta en cabecera.php
+  const meta = document.querySelector('meta[name="app-url"]');
+  const BASE_URL = meta
+    ? meta.content.replace(/\/$/, "")
+    : window.location.origin + "/sistema-educativo/publico";
 
   const obtenerCSRF = () =>
     document.querySelector('meta[name="csrf-token"]')?.content ?? "";
 
-  // X-Requested-with le dice a PHP que es una peticion AJAX
-
-  const cabecerasBase = () => ({
+  const cabeceras = () => ({
     "Content-Type": "application/json",
     "X-Requested-With": "XMLHttpRequest",
     Accept: "application/json",
   });
 
-  //GET - uso : const datos = await Api.get('/api/cursos/alumno');
-
   const get = async (endpoint) => {
     try {
       const res = await fetch(BASE_URL + endpoint, {
         method: "GET",
-        headers: cabecerasBase(),
+        headers: cabeceras(),
       });
-      return await procesarRespuesta(res);
-    } catch (error) {
-      console.error(`[Api.get] ${endpoint}:`, error);
-      return { estado: "error", mensaje: "Sin conexión al servidor." };
+      return await procesar(res);
+    } catch (e) {
+      console.error("[Api.get]", endpoint, e);
+      return { estado: "error", mensaje: "Sin conexión." };
     }
   };
-
-  // POST  - uso : await Api.post('/api/asistencia', {unidad_id :5, estado : 'presente'});
-  //El token CSRF se añade automatiamente
 
   const post = async (endpoint, datos = {}) => {
     try {
       const res = await fetch(BASE_URL + endpoint, {
         method: "POST",
-        headers: { ...cabecerasBase(), "X-CSRF-Token": obtenerCSRF() },
+        headers: { ...cabeceras(), "X-CSRF-Token": obtenerCSRF() },
         body: JSON.stringify(datos),
       });
-    } catch (error) {
-      console.error(`[Api.post] ${endpoint}:`, error);
-      return { estado: "error", mensaje: "Sin conexión con el servidor." };
+      return await procesar(res);
+    } catch (e) {
+      console.error("[Api.post]", endpoint, e);
+      return { estado: "error", mensaje: "Sin conexión." };
     }
   };
 
-  //Concvierte la respuesta HTTP en objeto JS y maneja errore globales
-  const procesarRespuesta = async (res) => {
+  const procesar = async (res) => {
     if (res.status === 401) {
-      window.location.href = BASE_URL + "/login?razon=sesion_expirada";
+      window.location.href = BASE_URL + "/login";
       return;
-      if (res.status === 403)
-        return { estado: "error", mensaje: "Sin permisos." };
-      if (res.status >= 500)
-        return { estado: "error", mensaje: "Error del servidor." };
     }
+    if (res.status === 403)
+      return { estado: "error", mensaje: "Sin permisos." };
+    if (res.status >= 500)
+      return { estado: "error", mensaje: "Error del servidor." };
     try {
       return await res.json();
     } catch {
-      return { estado: "error", mensaje: "Respuesta invalida" };
+      return { estado: "error", mensaje: "Respuesta inválida." };
     }
   };
+
   return { get, post, BASE_URL };
 })();

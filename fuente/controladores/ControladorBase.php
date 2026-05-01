@@ -61,20 +61,17 @@ abstract class ControladorBase
      * Carga una vista SIN plantilla (cabecera/pie).
      * Útil para: páginas de login, instalador, errores.
      */
-    protected function vistaSimple(string $ruta, array $datos = []): void
+   protected function vistaSimple(string $ruta, array $datos = []): void
 {
     // Garantiza constantes disponibles en la vista
     if (!defined('TOKEN_CSRF_NOMBRE')) {
         require_once RAIZ . '/configuracion/constantes.php';
     }
 
-    // Garantiza sesión activa
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
-    }
-
-    // Expone el token siempre como variable $token
+    // NO iniciamos sesión aquí — ya se inició en index.php
+    // Solo leemos el token que ya existe en $_SESSION
     $datos['token'] = $datos['token']
+        ?? $_SESSION[TOKEN_CSRF_NOMBRE]
         ?? $_SESSION['csrf_token']
         ?? '';
 
@@ -131,6 +128,9 @@ abstract class ControladorBase
      */
     protected function redirigir(string $ruta): void
     {
+       // Evitar que el navegador cachee las redirecciones
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+        header('Pragma: no-cache');
         $base = rtrim($_ENV['APP_URL'] ?? '', '/');
         header("Location: {$base}{$ruta}");
         exit;

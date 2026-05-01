@@ -69,28 +69,31 @@ class Curso extends ModeloBase
     /**
      * Cursos en los que está inscrito un alumno.
      */
-    public function listarPorAlumno(int $alumnoId): array
-    {
-        $stmt = $this->bd->prepare(
-            'SELECT c.*,
-                    CONCAT(u.nombre, " ", u.apellidos) AS nombre_profesor,
-                    p.nombre AS nombre_programa,
-                    COUNT(DISTINCT un.id)              AS total_unidades,
-                    COUNT(DISTINCT a.id)               AS unidades_asistidas
-               FROM cursos c
-               JOIN inscripciones  i  ON i.curso_id   = c.id AND i.alumno_id = :aid
-               JOIN usuarios       u  ON u.id          = c.profesor_id
-               LEFT JOIN programas p  ON p.id           = c.programa_id
-               LEFT JOIN unidades  un ON un.curso_id    = c.id
-               LEFT JOIN asistencias a ON a.unidad_id   = un.id
-                                      AND a.alumno_id   = :aid
-                                      AND a.estado      = "presente"
-           GROUP BY c.id
-           ORDER BY p.nombre ASC, c.nombre ASC'
-        );
-        $stmt->execute([':aid' => $alumnoId]);
-        return $stmt->fetchAll();
-    }
+   public function listarPorAlumno(int $alumnoId): array
+{
+    $stmt = $this->bd->prepare(
+        'SELECT c.*,
+                CONCAT(u.nombre, " ", u.apellidos) AS nombre_profesor,
+                p.nombre AS nombre_programa,
+                COUNT(DISTINCT un.id)              AS total_unidades,
+                COUNT(DISTINCT a.id)               AS unidades_asistidas
+           FROM cursos c
+           JOIN inscripciones  i  ON i.curso_id   = c.id AND i.alumno_id = :aid
+           JOIN usuarios       u  ON u.id          = c.profesor_id
+           LEFT JOIN programas p  ON p.id           = c.programa_id
+           LEFT JOIN unidades  un ON un.curso_id    = c.id
+           LEFT JOIN asistencias a ON a.unidad_id   = un.id
+                                  AND a.alumno_id   = :aid2
+                                  AND a.estado      = "presente"
+       GROUP BY c.id
+       ORDER BY p.nombre ASC, c.nombre ASC'
+    );
+    $stmt->execute([
+        ':aid'  => $alumnoId,
+        ':aid2' => $alumnoId,
+    ]);
+    return $stmt->fetchAll();
+}
 
     /**
      * Cursos independientes (sin programa).

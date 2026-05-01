@@ -59,75 +59,61 @@ class ControladorAuth extends ControladorBase
 
   //-----Procesar login-------
 
-  public function procesarLogin(array $params =[]):void
-  {
+  public function procesarLogin(array $params = []): void
+{
     $this->verificarCSRF();
 
-    $correo   = trim($_POST['correo']  ?? '');
+    $correo   = trim($_POST['correo']   ?? '');
     $password = trim($_POST['password'] ?? '');
     $ip       = $_SERVER['REMOTE_ADDR'] ?? '';
 
-    //Validacion básica
-    if(empty($correo) || empty($password)){
-      GestorSesion::flash('error', 'Introduce tu correo y contraseña.');
-
-      $this->redirigir('/login');
-      return;
+    if (empty($correo) || empty($password)) {
+        GestorSesion::flash('error', 'Introduce tu correo y contraseña.');
+        $this->redirigir('/login');
+        return;
     }
 
-    //Verificar si está bloqueado por fuerza bruta 
-    if($this->modeloUsuario->estaBloqueado($ip, $correo)){
-      GestorSesion::flash('error',
-      'Demasiados intentos fallidos. Espera ' . BLOQUEO_MINUTOS . 'minutos');
-      ServicioLog::registrar('login_bloqueado', 'usuario', null,
-      ['correo' => $correo, 'ip' => $ip]);
-      $this->redirigir('/login');
-      return;
+    if ($this->modeloUsuario->estaBloqueado($ip, $correo)) {
+        GestorSesion::flash('error',
+            'Demasiados intentos fallidos. Espera ' . BLOQUEO_MINUTOS . ' minutos.'
+        );
+        $this->redirigir('/login');
+        return;
     }
-
-    //Intentar autenticar
 
     $usuario = $this->modeloUsuario->autenticar($correo, $password);
 
-    if(!$usuario){
-      //Registrar intento fallido
-      $this->modeloUsuario->registrarIntentoFallido($ip, $correo);
-      $intentos = $this->modeloUsuario->contarIntentosFallidos($ip, $correo);
-
-      $restantes = INTENTOS_LOGIN_MAX - $intentos;
-
-      $mensaje = $restantes > 0 ? "Correo o contraseña incorrectos. Te quedan {$restantes} intentos." : 'Cuenta bloqueada temporalmente por seguridad';
-
-      GestorSesion::flash('error', $mensaje);
-      ServicioLog::registrar('login_fallido', null, null, [
-        'correo' => $correo, 'intentos' => $intentos
-      ]);
-
-      $this->redirigir('/login');
-
-      return;
+    if (!$usuario) {
+        $this->modeloUsuario->registrarIntentoFallido($ip, $correo);
+        $intentos  = $this->modeloUsuario->contarIntentosFallidos($ip, $correo);
+        $restantes = INTENTOS_LOGIN_MAX - $intentos;
+        $mensaje   = $restantes > 0
+            ? "Correo o contraseña incorrectos. Te quedan {$restantes} intentos."
+            : 'Cuenta bloqueada temporalmente.';
+        GestorSesion::flash('error', $mensaje);
+        $this->redirigir('/login');
+        return;
     }
 
-    //Login correcto - Limpiar intentos ($ip, #correo);
+    // ── Login correcto ────────────────────────────────────────
     $this->modeloUsuario->limpiarIntentos($ip, $correo);
+
+    // DESTRUIR sesion anterior completamente antes de crear la nueva
+    // Esto limpia cualquier dato del rol anterior (alumno, profesor, etc.)
+    GestorSesion::cerrar();
+
+    // Iniciar sesion limpia
+    session_start();
+
+    // Guardar datos del nuevo usuario
     GestorSesion::iniciarSesionUsuario($usuario);
 
-    ServicioLog::registrar('login_exitoso', 'usuario', $usuario['id'], ['rol' =>$usuario['rol']]);
-
-    //Si había una URL a la que intentaba ir, redirigir ahí
-    $urlDeseada = $_SESSION['url_deseada'] ?? null;
-    unset($_SESSION['url_deseada']);
-
-    if($urlDeseada){
-      $base = rtrim($_ENV['APP_URL'] ?? '','/');
-      header("Location: {$base}{$urlDeseada}");
-      exit;
-    }
+    ServicioLog::registrar('login_exitoso', 'usuario', $usuario['id'], [
+        'rol' => $usuario['rol']
+    ]);
 
     $this->redirigirSegunRol();
-
-  }
-
+}
   //-----Cerrar sesion-----------
 
   public function cerrarSesion(array $params = []): void 
@@ -146,8 +132,8 @@ class ControladorAuth extends ControladorBase
     $rol = GestorSesion::obtenerRol();
     match($rol){
       ROL_ALUMNO    => $this->redirigir('/alumno/panel'),
-      ROL_PROFESOR  => $this->redirigir('/prodesor/panel'),
-      ROL_ADMIN     => $this->redirigir('/admi/panel'),
+      ROL_PROFESOR  => $this->redirigir('/profesor/panel'),
+      ROL_ADMIN     => $this->redirigir('/admin/panel'),
       default       =>$this->redirigir('/login'),
     };
   }
