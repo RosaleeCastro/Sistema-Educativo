@@ -44,7 +44,7 @@ const AsistenciaAlumno = (() => {
       estado: estado,
     });
 
-    if (resultado?.estado === "ok") {
+    if (resultado?.registrado === true) {
       // Actualizar UI segun el estado marcado
       actualizarBotonEstado(boton, estado);
       Notificacion.mostrar("Asistencia registrada correctamente", "exito");
@@ -81,12 +81,6 @@ const AsistenciaAlumno = (() => {
       },
     };
     const c = config[estado] ?? config.presente;
-    boton.textContent = c.texto;
-    boton.style.color = c.color;
-    boton.style.background = c.bg;
-    boton.style.border = `1px solid ${c.color}`;
-    boton.style.cursor = "default";
-    boton.disabled = true;
 
     // Marcar la fila de la unidad como completada
     const fila = boton.closest("[data-unidad-fila]");
