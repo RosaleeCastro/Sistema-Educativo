@@ -64,23 +64,23 @@ const AsistenciaAlumno = (() => {
   // Cambia el aspecto del boton segun el estado marcado
   const actualizarBotonEstado = (boton, estado) => {
     const config = {
-      presente: {
-        texto: "✅ Presente",
-        color: "var(--exito)",
-        bg: "var(--exito-bg)",
-      },
-      tardanza: {
-        texto: "⏰ Tardanza",
-        color: "var(--aviso)",
-        bg: "var(--aviso-bg)",
-      },
-      ausente: {
-        texto: "❌ Ausente",
-        color: "var(--error)",
-        bg: "var(--error-bg)",
-      },
+      presente: { texto: "✅ Presente", clase: "badge-exito" },
+      tardanza: { texto: "⏰ Tardanza", clase: "badge-aviso" },
+      ausente: { texto: "❌ Ausente", clase: "badge-error" },
     };
+
     const c = config[estado] ?? config.presente;
+
+    // Crear el badge
+    const badge = document.createElement("span");
+    badge.className = `badge ${c.clase}`;
+    badge.textContent = c.texto;
+    badge.style.cssText =
+      "display:inline-flex;align-items:center;padding:.2rem .6rem;border-radius:20px;font-size:.75rem;font-weight:500";
+
+    // Ocultar el botón e insertar el badge en su lugar
+    boton.style.display = "none";
+    boton.parentNode.insertBefore(badge, boton);
 
     // Marcar la fila de la unidad como completada
     const fila = boton.closest("[data-unidad-fila]");
